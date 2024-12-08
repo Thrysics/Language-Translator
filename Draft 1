@@ -1,30 +1,81 @@
-<script>
-    async function translateWord() {
-        const word = document.getElementById('wordInput').value;
-        const direction = document.getElementById('languageDirection').value;
-        const [source, target] = direction.split('-');
-
-        if (!word) {
-            document.getElementById('result').textContent = "Please enter a word!";
-            return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Translator</title>
+    
+        #result.error {
+            font-weight: bold;
+            color: red;
         }
+
+</head>
+<body>
+    <h1>Language Translator</h1>
+    <input type="text" id="wordInput" placeholder="Enter 1 or 2 words" style="width: 300px; padding: 10px;">
+    <br><br>
+    <select id="languageDirection" style="padding: 10px;">
+        <option value="en-es">English to Spanish</option>
+        <option value="es-en">Spanish to English</option>
+        <option value="en-pt">English to Portuguese</option>
+        <option value="pt-en">Portuguese to English</option>
+        <option value="en-tr">English to Turkish</option>
+        <option value="tr-en">Turkish to English</option>
+        <option value="en-ja">English to Japanese</option>
+        <option value="ja-en">Japanese to English</option>
+        <option value="en-zh">English to Mandarin</option>
+        <option value="zh-en">Mandarin to English</option>
+    </select>
+    <br><br>
+    <button onclick="translateWord()" style="padding: 10px 20px; font-size: 16px;">Translate</button>
+    <h2 id="result"></h2>
 
-        try {
-            console.log("Sending API request...");
-            const response = await fetch(`https://api.mymemory.translated.net/get?q=${word}&langpair=${source}|${target}`);
-            console.log("Response received:", response);
-            const data = await response.json();
-            console.log("Data parsed:", data);
+    <script>
+        async function translateWord() {
+            const wordInput = document.getElementById('wordInput');
+            const word = wordInput.value.trim(); // Remove leading/trailing spaces
+            const direction = document.getElementById('languageDirection').value;
+            const [source, target] = direction.split('-');
 
-            if (data.responseData && data.responseData.translatedText) {
-                const translation = data.responseData.translatedText;
-                document.getElementById('result').textContent = `Translation: ${translation}`;
-            } else {
-                document.getElementById('result').textContent = "Translation not found.";
+            // Validate input for word count
+            const wordCount = word.split(/\s+/).length; // Split by spaces and count
+            if (wordCount > 2) {
+                
+                document.getElementById('result').className = "error";
+                
+                document.getElementById('result').className = "error";
+                return;
             }
-        } catch (error) {
-            console.error("Error occurred:", error);
-            document.getElementById('result').textContent = "Error translating the word.";
+
+            if (!word) {
+                document.getElementById('result').textContent = "Please enter a word!";
+                document.getElementById('result').className = "error";
+                return;
+            }
+
+            try {
+                document.getElementById('result').textContent = "Translating...";
+                document.getElementById('result').className = "";
+
+                const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=${source}|${target}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data.responseData && data.responseData.translatedText) {
+                    const translation = data.responseData.translatedText;
+                    document.getElementById('result').textContent = `Translation: ${translation}`;
+                } else {
+                    document.getElementById('result').textContent = "Translation not found.";
+                }
+            } catch (error) {
+                console.error("Error occurred during API call:", error);
+                document.getElementById('result').textContent = "Error translating the word. Please try again.";
+                document.getElementById('result').className = "error";
+            }
         }
-    }
-</script>
+    </script>
+</body>
+</html>
